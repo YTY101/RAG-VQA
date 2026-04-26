@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 
 from .config import Settings
+from .debug import debug_dump
 from .schemas import Evidence, QueryBundle
 
 
@@ -25,6 +26,17 @@ class AnswerGenerator:
                 self._model = None
 
     def generate(self, query: QueryBundle, evidences: list[Evidence], visual_answer: str | None) -> str:
+        debug_dump(
+            self.settings,
+            "step4.answer_inputs",
+            {
+                "question": query.question,
+                "visual_caption": query.visual_caption,
+                "visual_answer": visual_answer,
+                "evidence_count": len(evidences),
+                "generation_backend": "seq2seq" if self._model is not None else "extractive_fallback",
+            },
+        )
         if self._model is not None and self._tokenizer is not None:
             generated = self._generate_with_model(query, evidences, visual_answer)
             if generated:
@@ -44,6 +56,7 @@ class AnswerGenerator:
             f"Reference evidence:\n{evidence_text}\n"
             "Final answer:"
         )
+        debug_dump(self.settings, "step4.generator_prompt", {"prompt": prompt})
         inputs = self._tokenizer(prompt, return_tensors="pt", truncation=True, max_length=768)
         output = self._model.generate(**inputs, max_new_tokens=128, num_beams=4)
         text = self._tokenizer.decode(output[0], skip_special_tokens=True).strip()
@@ -73,4 +86,3 @@ class AnswerGenerator:
             scored.append((score, sentence))
         scored.sort(key=lambda item: (-item[0], len(item[1])))
         return scored[0][1][:260]
-

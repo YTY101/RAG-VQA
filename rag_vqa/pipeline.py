@@ -4,6 +4,7 @@ from pathlib import Path
 
 from .answer import AnswerGenerator
 from .config import Settings
+from .debug import debug_dump
 from .query import QueryGenerator
 from .retriever import KnowledgeBase
 from .schemas import Evidence, RAGAnswer
@@ -25,14 +26,39 @@ class RAGVQAPipeline:
 
     def ask(self, image_path: str | Path, question: str, top_k: int | None = None) -> RAGAnswer:
         top_k = top_k or self.settings.top_k
+        debug_dump(
+            self.settings,
+            "pipeline.start",
+            {
+                "image_path": str(image_path),
+                "question": question,
+                "top_k": top_k,
+                "enable_web": self.web is not None,
+                "knowledge_base_docs": len(self.kb.docs),
+            },
+        )
+
         visual_caption = self.describer.describe(image_path)
+        debug_dump(self.settings, "step1.visual_caption", {"visual_caption": visual_caption})
+
         query = self.query_generator.generate(question, visual_caption)
+        debug_dump(self.settings, "step1.query_bundle", query)
+
         visual_answer = self.vqa.answer(image_path, question)
+        debug_dump(self.settings, "step1.visual_answer", {"visual_answer": visual_answer})
 
         local_evidence = self.kb.retrieve(query, image_path, top_k=top_k)
+        debug_dump(self.settings, "step2.local_evidence", local_evidence)
+
         web_evidence = self.web.retrieve(query, top_k=max(1, top_k // 2)) if self.web else []
+        debug_dump(self.settings, "step2.web_evidence", web_evidence)
+
         evidences = self._merge_evidence(local_evidence + web_evidence, top_k=top_k)
+        debug_dump(self.settings, "step3.merged_evidence", evidences)
+
         answer = self.answer_generator.generate(query, evidences, visual_answer)
+        debug_dump(self.settings, "step4.final_answer", {"answer": answer})
+
         return RAGAnswer(
             answer=answer,
             visual_caption=visual_caption,
@@ -53,4 +79,3 @@ class RAGVQAPipeline:
             if len(merged) >= top_k:
                 break
         return merged
-

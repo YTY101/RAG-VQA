@@ -7,6 +7,7 @@ import numpy as np
 from PIL import Image
 
 from .config import Settings
+from .debug import debug_dump
 from .embeddings import ImageEmbedder, TextEmbedder, l2_normalize
 from .schemas import Document, Evidence, QueryBundle
 
@@ -68,6 +69,17 @@ class KnowledgeBase:
             else:
                 image_vectors.append(np.zeros(self.image_embedder.dim, dtype=np.float32))
         self.image_vectors = np.vstack(image_vectors).astype(np.float32) if image_vectors else np.zeros((0, 96), dtype=np.float32)
+        debug_dump(
+            self.settings,
+            "index.build",
+            {
+                "doc_count": len(self.docs),
+                "text_vector_shape": self.text_vectors.shape,
+                "image_vector_shape": self.image_vectors.shape,
+                "text_embedding_model": self.text_embedder.model_name,
+                "image_embedding_model": self.image_embedder.model_name,
+            },
+        )
 
     def retrieve(self, query: QueryBundle, image_path: str | Path, top_k: int) -> list[Evidence]:
         if self.text_vectors is None or self.image_vectors is None:
@@ -80,6 +92,26 @@ class KnowledgeBase:
 
         combined = self.settings.text_weight * text_scores + self.settings.image_weight * image_scores
         ranked_idx = np.argsort(-combined)
+        debug_dump(
+            self.settings,
+            "step2.retrieval_scores",
+            {
+                "text_weight": self.settings.text_weight,
+                "image_weight": self.settings.image_weight,
+                "min_evidence_score": self.settings.min_evidence_score,
+                "scores": [
+                    {
+                        "rank": rank + 1,
+                        "doc_id": self.docs[int(idx)].id,
+                        "title": self.docs[int(idx)].title,
+                        "text_score": float(text_scores[int(idx)]),
+                        "image_score": float(image_scores[int(idx)]),
+                        "combined_score": float(combined[int(idx)]),
+                    }
+                    for rank, idx in enumerate(ranked_idx[: max(top_k, 10)])
+                ],
+            },
+        )
         evidences: list[Evidence] = []
         seen: set[str] = set()
         for idx in ranked_idx:
@@ -147,4 +179,3 @@ class KnowledgeBase:
     def _fingerprint(self, text: str) -> str:
         normalized = "".join(text.lower().split())[:220]
         return normalized
-

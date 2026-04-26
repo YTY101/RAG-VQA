@@ -6,22 +6,35 @@ from dataclasses import asdict
 from pathlib import Path
 
 from .config import Settings
+from .debug import debug_dump
 from .pipeline import RAGVQAPipeline
 from .retriever import KnowledgeBase
 
 
 def build_index(args: argparse.Namespace) -> None:
-    settings = Settings()
+    settings = Settings(debug=args.debug)
+    debug_dump(settings, "cli.build_index.args", vars(args))
     kb = KnowledgeBase.from_jsonl(args.kb, settings=settings)
     kb.save(args.index_dir)
     print(f"Built index with {len(kb.docs)} documents: {args.index_dir}")
 
 
 def ask(args: argparse.Namespace) -> None:
-    settings = Settings(top_k=args.top_k)
+    settings = Settings(top_k=args.top_k, debug=args.debug)
+    debug_dump(settings, "cli.ask.args", vars(args))
     index_dir = Path(args.index_dir)
     if index_dir.exists() and (index_dir / "documents.json").exists():
         kb = KnowledgeBase.load(index_dir, settings=settings)
+        debug_dump(
+            settings,
+            "index.load",
+            {
+                "index_dir": str(index_dir),
+                "doc_count": len(kb.docs),
+                "text_vector_shape": kb.text_vectors.shape,
+                "image_vector_shape": kb.image_vectors.shape,
+            },
+        )
     else:
         kb = KnowledgeBase.from_jsonl(args.kb, settings=settings)
         kb.save(index_dir)
@@ -38,7 +51,8 @@ def serve(args: argparse.Namespace) -> None:
     except Exception as exc:
         raise SystemExit("Please install gradio first: pip install gradio") from exc
 
-    settings = Settings(top_k=args.top_k)
+    settings = Settings(top_k=args.top_k, debug=args.debug)
+    debug_dump(settings, "cli.serve.args", vars(args))
     index_dir = Path(args.index_dir)
     kb = KnowledgeBase.load(index_dir, settings=settings) if (index_dir / "documents.json").exists() else KnowledgeBase.from_jsonl(args.kb, settings)
     pipeline = RAGVQAPipeline(kb=kb, settings=settings, enable_web=args.web)
@@ -67,6 +81,7 @@ def make_parser() -> argparse.ArgumentParser:
     p_build = sub.add_parser("build-index", help="Build local vector index")
     p_build.add_argument("--kb", default="data/knowledge_base/sample_knowledge.jsonl")
     p_build.add_argument("--index-dir", default="outputs/index")
+    p_build.add_argument("--debug", action="store_true", help="Print intermediate variables to stderr")
     p_build.set_defaults(func=build_index)
 
     p_ask = sub.add_parser("ask", help="Ask a question about an image")
@@ -76,6 +91,7 @@ def make_parser() -> argparse.ArgumentParser:
     p_ask.add_argument("--index-dir", default="outputs/index")
     p_ask.add_argument("--top-k", type=int, default=5)
     p_ask.add_argument("--web", action="store_true", help="Enable Wikipedia evidence retrieval")
+    p_ask.add_argument("--debug", action="store_true", help="Print intermediate variables to stderr")
     p_ask.set_defaults(func=ask)
 
     p_serve = sub.add_parser("serve", help="Run a Gradio demo")
@@ -83,6 +99,7 @@ def make_parser() -> argparse.ArgumentParser:
     p_serve.add_argument("--index-dir", default="outputs/index")
     p_serve.add_argument("--top-k", type=int, default=5)
     p_serve.add_argument("--web", action="store_true")
+    p_serve.add_argument("--debug", action="store_true", help="Print intermediate variables to stderr")
     p_serve.add_argument("--host", default="127.0.0.1")
     p_serve.add_argument("--port", type=int, default=7860)
     p_serve.set_defaults(func=serve)
@@ -97,4 +114,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

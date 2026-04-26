@@ -23,4 +23,4 @@ class Settings:
     web_timeout: int = int(os.getenv("RAG_VQA_WEB_TIMEOUT", "8"))
     enable_generator: bool = os.getenv("RAG_VQA_ENABLE_GENERATOR", "1") != "0"
     enable_blip_vqa: bool = os.getenv("RAG_VQA_ENABLE_BLIP_VQA", "1") != "0"
-
+    debug: bool = os.getenv("RAG_VQA_DEBUG", "0") == "1"

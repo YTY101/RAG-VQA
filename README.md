@@ -40,6 +40,15 @@ python -m rag_vqa.cli ask \
   --web
 ```
 
+开启调试模式后，程序会在运行时把关键中间变量打印到 `stderr`，包括图像描述、Query、关键词、文本/图像检索分数、Top-k 证据、答案生成输入和最终答案：
+
+```bash
+python -m rag_vqa.cli ask \
+  --image /path/to/image.jpg \
+  --question "这座建筑有什么历史意义？" \
+  --debug
+```
+
 启动可视化 Demo：
 
 ```bash
@@ -70,7 +79,8 @@ python -m rag_vqa.cli serve --web --port 7860
 ## 主要文件
 
 - `rag_vqa/cli.py`：命令行和 Gradio 入口。
-- `rag_vqa/pipeline.py`：端到端 RAG-VQAs 流水线。
+- `rag_vqa/pipeline.py`：端到端 RAG-VQA 流水线。
+- `rag_vqa/debug.py`：调试模式的结构化变量打印工具。
 - `rag_vqa/vision.py`：图像描述与视觉问答。
 - `rag_vqa/query.py`：图文融合 Query 构建。
 - `rag_vqa/retriever.py`：本地向量知识库与证据重排。
