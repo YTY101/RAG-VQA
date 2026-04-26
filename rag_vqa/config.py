@@ -16,11 +16,13 @@ class Settings:
     vqa_model: str = os.getenv("RAG_VQA_VQA_MODEL", "Salesforce/blip-vqa-base")
     generator_model: str = os.getenv("RAG_VQA_GENERATOR_MODEL", "google/flan-t5-base")
     device: str = os.getenv("RAG_VQA_DEVICE", "auto")
+    vision_local_files_only: bool = os.getenv("RAG_VQA_VISION_LOCAL_FILES_ONLY", "1") == "1"
     top_k: int = int(os.getenv("RAG_VQA_TOP_K", "5"))
     text_weight: float = float(os.getenv("RAG_VQA_TEXT_WEIGHT", "0.70"))
     image_weight: float = float(os.getenv("RAG_VQA_IMAGE_WEIGHT", "0.30"))
     min_evidence_score: float = float(os.getenv("RAG_VQA_MIN_SCORE", "0.10"))
     web_timeout: int = int(os.getenv("RAG_VQA_WEB_TIMEOUT", "8"))
+    web_use_env_proxy: bool = os.getenv("RAG_VQA_WEB_USE_ENV_PROXY", "1") == "1"
     enable_generator: bool = os.getenv("RAG_VQA_ENABLE_GENERATOR", "1") != "0"
     enable_blip_vqa: bool = os.getenv("RAG_VQA_ENABLE_BLIP_VQA", "1") != "0"
     debug: bool = os.getenv("RAG_VQA_DEBUG", "0") == "1"

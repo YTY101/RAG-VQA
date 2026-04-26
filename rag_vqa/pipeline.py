@@ -18,11 +18,19 @@ class RAGVQAPipeline:
     def __init__(self, kb: KnowledgeBase, settings: Settings | None = None, enable_web: bool = False) -> None:
         self.settings = settings or Settings()
         self.kb = kb
-        self.describer = ImageDescriber(self.settings.caption_model)
-        self.vqa = VisualQuestionAnswerer(self.settings.vqa_model, enabled=self.settings.enable_blip_vqa)
+        self.describer = ImageDescriber(self.settings.caption_model, settings=self.settings)
+        self.vqa = VisualQuestionAnswerer(self.settings.vqa_model, settings=self.settings, enabled=self.settings.enable_blip_vqa)
         self.query_generator = QueryGenerator()
         self.answer_generator = AnswerGenerator(self.settings)
-        self.web = WikipediaRetriever(timeout=self.settings.web_timeout) if enable_web else None
+        self.web = (
+            WikipediaRetriever(
+                timeout=self.settings.web_timeout,
+                settings=self.settings,
+                use_env_proxy=self.settings.web_use_env_proxy,
+            )
+            if enable_web
+            else None
+        )
 
     def ask(self, image_path: str | Path, question: str, top_k: int | None = None) -> RAGAnswer:
         top_k = top_k or self.settings.top_k
