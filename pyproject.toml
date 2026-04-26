@@ -1,0 +1,18 @@
+[project]
+name = "rag-vqa-course-project"
+version = "0.1.0"
+description = "A course project implementation for RAG-based visual question answering."
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=1.24",
+  "pillow>=10.0",
+  "requests>=2.31",
+  "torch>=2.1",
+  "transformers>=4.40",
+  "sentence-transformers>=2.7",
+  "gradio>=4.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
