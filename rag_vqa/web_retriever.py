@@ -16,7 +16,8 @@ class WikipediaRetriever:
     def __init__(
         self,
         timeout: int = 8,
-        language: str = "zh",
+        # language: str = "zh",
+        language: str = "en",
         settings: Settings | None = None,
         use_env_proxy: bool = False,
     ) -> None:
@@ -103,15 +104,19 @@ class WikipediaRetriever:
     def _build_search_query(self, query: QueryBundle) -> str:
         candidates = [query.question.strip()]
         candidates.extend(query.keywords[:8])
-        cleaned: list[str] = []
-        seen: set[str] = set()
-        for term in candidates:
-            normalized = self._normalize_term(term)
-            if not normalized or normalized in seen:
-                continue
-            seen.add(normalized)
-            cleaned.append(normalized)
-        return " ".join(cleaned[:4]) or query.question
+        print("[TEST]query.keywords", query.keywords)
+        print("[TEST]query.keywords[:8]", query.keywords[:8])
+        
+        return " ".join(candidates) or query.question
+        # cleaned: list[str] = []
+        # seen: set[str] = set()
+        # for term in candidates:
+        #     normalized = self._normalize_term(term)
+        #     if not normalized or normalized in seen:
+        #         continue
+        #     seen.add(normalized)
+        #     cleaned.append(normalized)
+        # return " ".join(cleaned[:4]) or query.question
 
     def _normalize_term(self, term: str) -> str:
         term = re.sub(r"\s+", " ", term.strip())

@@ -6,6 +6,7 @@ from rag_vqa.config import Settings
 from rag_vqa.query import QueryGenerator
 from rag_vqa.retriever import KnowledgeBase
 from rag_vqa.schemas import Document
+from rag_vqa.answer import AnswerGenerator
 from rag_vqa.vision import ImageDescriber, VisualQuestionAnswerer
 from rag_vqa.web_retriever import WikipediaRetriever
 
@@ -109,3 +110,10 @@ def test_image_describer_fallback_uses_filename_and_color(tmp_path) -> None:
 def test_visual_question_answerer_returns_none_when_disabled() -> None:
     answerer = VisualQuestionAnswerer("missing-model", enabled=False)
     assert answerer.answer("/tmp/not-used.png", "what is this?") is None
+
+
+def test_answer_generator_stays_disabled_when_generation_off() -> None:
+    generator = AnswerGenerator(Settings(enable_generator=False))
+    assert generator._model is None
+    assert generator._tokenizer is None
+    assert generator._device == "cpu"

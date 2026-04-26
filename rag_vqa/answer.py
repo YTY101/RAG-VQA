@@ -14,16 +14,34 @@ class AnswerGenerator:
         self.settings = settings
         self._tokenizer = None
         self._model = None
+        self._torch = None
+        self._device = "cpu"
         if settings.enable_generator:
             try:
+                import torch
                 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
+                self._torch = torch
+                self._device = "cuda" if torch.cuda.is_available() else "cpu"
                 self._tokenizer = AutoTokenizer.from_pretrained(settings.generator_model)
                 self._model = AutoModelForSeq2SeqLM.from_pretrained(settings.generator_model)
+                self._model.to(self._device)
                 self._model.eval()
-            except Exception:
+                debug_dump(
+                    self.settings,
+                    "answer.generator.init",
+                    {"model_name": settings.generator_model, "device": self._device},
+                )
+            except Exception as exc:
                 self._tokenizer = None
                 self._model = None
+                self._torch = None
+                self._device = "cpu"
+                debug_dump(
+                    self.settings,
+                    "answer.generator.init_error",
+                    {"model_name": settings.generator_model, "error": repr(exc)},
+                )
 
     def generate(self, query: QueryBundle, evidences: list[Evidence], visual_answer: str | None) -> str:
         debug_dump(
@@ -58,6 +76,8 @@ class AnswerGenerator:
         )
         debug_dump(self.settings, "step4.generator_prompt", {"prompt": prompt})
         inputs = self._tokenizer(prompt, return_tensors="pt", truncation=True, max_length=768)
+        if self._torch is not None:
+            inputs = {key: value.to(self._device) for key, value in inputs.items()}
         output = self._model.generate(**inputs, max_new_tokens=128, num_beams=4)
         text = self._tokenizer.decode(output[0], skip_special_tokens=True).strip()
         return text
