@@ -67,7 +67,16 @@ class AnswerGenerator:
         )
         prompt = (
             "Answer the question using the image caption, visual answer, and reference evidence. "
-            "If evidence is insufficient, say what is uncertain. Keep the answer concise and cite evidence numbers.\n\n"
+            "Write 2-3 complete sentences, not just a name or noun phrase. "
+            "Focus on facts that directly answer the question and ignore unrelated evidence. "
+            "If the question asks about history, background, or significance, prioritize when it was built, why it was built, who designed it, and why it matters. "
+            "If evidence is insufficient or conflicting, say what is uncertain. "
+            "Cite supporting evidence numbers in square brackets such as [1] or [2][3].\n\n"
+            "Output requirements:\n"
+            "- Use natural English.\n"
+            "- Mention the most relevant entity explicitly.\n"
+            "- Base the answer only on the evidence shown.\n"
+            "- Do not answer with only a title.\n\n"
             f"Image caption: {query.visual_caption}\n"
             f"Visual-only answer: {visual_answer or 'N/A'}\n"
             f"Question: {query.question}\n"
