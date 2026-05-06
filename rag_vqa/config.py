@@ -26,3 +26,5 @@ class Settings:
     enable_generator: bool = os.getenv("RAG_VQA_ENABLE_GENERATOR", "1") != "0"
     enable_blip_vqa: bool = os.getenv("RAG_VQA_ENABLE_BLIP_VQA", "1") != "0"
     debug: bool = os.getenv("RAG_VQA_DEBUG", "0") == "1"
+    cache_caption: bool = os.getenv("RAG_VQA_CACHE_CAPTION", "0") == "1"
+    caption_cache_path: str | None = os.getenv("RAG_VQA_CAPTION_CACHE_PATH") or None
