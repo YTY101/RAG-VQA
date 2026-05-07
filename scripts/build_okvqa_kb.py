@@ -187,9 +187,9 @@ def main() -> None:
         "high frequency answer strings to grow the topic list.",
     )
     parser.add_argument("--output", default="data/knowledge_base/okvqa_kb.jsonl")
-    parser.add_argument("--max-pages", type=int, default=2000, help="Cap on Wikipedia summaries to fetch")
-    parser.add_argument("--timeout", type=int, default=8)
-    parser.add_argument("--sleep", type=float, default=0.05, help="Sleep between Wikipedia calls")
+    parser.add_argument("--max-pages", type=int, default=200, help="Cap on Wikipedia summaries to fetch")
+    parser.add_argument("--timeout", type=int, default=3)
+    parser.add_argument("--sleep", type=float, default=0, help="Sleep between Wikipedia calls")
     args = parser.parse_args()
 
     topics = collect_topics(args)
