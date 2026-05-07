@@ -33,7 +33,7 @@ flowchart LR
 - Step 3 证据整理：相似度排序、去重、Top-k 截断、来源与分数结构化封装。
 - Step 4 回答生成：flan-t5 融合图像描述、视觉 VQA 答案与证据片段，输出含引用的答案。
 
-## 安装
+## 安装(venv / conda 都可以，这里以venv为例)
 
 ```bash
 python -m venv .venv
@@ -74,7 +74,7 @@ python -m rag_vqa.cli eval-retrieval `
 
 ```bash
 # Linux / macOS
-bash scripts/run_demo.sh /path/to/image.jpg "Your question"
+bash scripts/run_demo.sh data/okvqa/images/val2014/COCO_val2014_000000297147.jpg "What sport can you use this for"
 # Windows PowerShell
 pwsh scripts/run_demo.ps1 -Image "C:/path/to/image.jpg" -Question "Your question"
 ```
@@ -105,17 +105,17 @@ python -m rag_vqa.cli ask --image ... --question "..." --debug
 | Recall@10  | 0.9455 | 1.0000 | +5.5 pts  | +5.8%  |
 | Hit@5      | 0.8727 | 0.9636 | +9.1 pts  | +10.4% |
 
-简历英文写法（数字以真实输出为准）：
+总结：
 
 > *Constructed joint image-text queries combining BLIP captions with question-aware keyword extraction; lifted retrieval Recall@5 from 0.873 to 0.964 (+10% relative) and Recall@1 from 0.636 to 0.800 (+26%) on a 55-question internal benchmark with manually labeled gold documents.*
 
 ### OKVQA val accuracy
 
-OKVQA 数据需要手动下载，参见下一节的复现步骤。`outputs/okvqa_eval.json` 里会写入总分与按 `question_type` / `answer_type` 的分项。简历最终引用的分数以这个文件里的 `overall_accuracy_pct` 为准。
+OKVQA 数据需要手动下载，参见下一节的复现步骤。`outputs/okvqa_eval.json` 里会写入总分与按 `question_type` / `answer_type` 的分项。最终引用的分数以这个文件里的 `overall_accuracy_pct` 为准。
 
 ## Reproduce metrics
 
-下面三条命令复现简历里两条数字指标：
+下面三条命令复现两条数字指标：
 
 ### 1. 检索覆盖率消融（baseline 仅问题 vs 完整 query）
 
@@ -149,7 +149,7 @@ python scripts/build_okvqa_kb.py \
   --train-annotations data/okvqa/mscoco_train2014_annotations.json \
   --output data/knowledge_base/okvqa_kb.jsonl \
   --max-pages 4000
-
+ 
 python -m rag_vqa.cli build-index \
   --kb data/knowledge_base/okvqa_kb.jsonl \
   --index-dir outputs/okvqa_index
