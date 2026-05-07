@@ -16,7 +16,8 @@ class Settings:
     vqa_model: str = os.getenv("RAG_VQA_VQA_MODEL", "Salesforce/blip-vqa-base")
     generator_model: str = os.getenv("RAG_VQA_GENERATOR_MODEL", "google/flan-t5-base")
     device: str = os.getenv("RAG_VQA_DEVICE", "auto")
-    vision_local_files_only: bool = os.getenv("RAG_VQA_VISION_LOCAL_FILES_ONLY", "1") == "1"
+    # Default False: first run can pull BLIP/CLIP from Hugging Face. Air-gapped/offline: set RAG_VQA_VISION_LOCAL_FILES_ONLY=1.
+    vision_local_files_only: bool = os.getenv("RAG_VQA_VISION_LOCAL_FILES_ONLY", "0") == "1"
     top_k: int = int(os.getenv("RAG_VQA_TOP_K", "5"))
     text_weight: float = float(os.getenv("RAG_VQA_TEXT_WEIGHT", "0.70"))
     image_weight: float = float(os.getenv("RAG_VQA_IMAGE_WEIGHT", "0.30"))
